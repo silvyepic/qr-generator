@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Generator with Logo</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #qrCode {
+      display: none;
+      margin: 1rem;
+    }
+    button {
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border-radius: 4px;
+    }
+    .file-input {
+      display: block;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>QR Code Generator with Logo</h1>
+  <h3>File upload currently unavailable! </h3>
+  <input type="url" id="urlInput" placeholder="Enter the link here..." required>
+  <input type="file" id="logoInput" class="file-input" accept="image/*">
+  <button id="generateBtn">Generate QR Code</button>
+  <div id="qrCode">
+    <canvas id="qrCanvas"></canvas>
+  </div>
+  <a href="#" download="qr-code.png" id="downloadBtn" style="display:none;">Download QR Code</a>
+
+  <script>
+    const urlInput = document.getElementById('urlInput');
+    const logoInput = document.getElementById('logoInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const qrCode = document.getElementById('qrCode');
+    const qrCanvas = document.getElementById('qrCanvas');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("Failed to load image"));
+      });
+    }
+
+    async function drawLogo(canvas, logoSrc) {
+      const ctx = canvas.getContext("2d");
+      const size = canvas.width;
+      const logoSize = size / 3;
+      const logoPos = (size - logoSize) / 2;
+
+      const logo = await loadImage(logoSrc);
+
+      ctx.drawImage(logo, logoPos, logoPos, logoSize, logoSize);
+    }
+
+    generateBtn.addEventListener('click', async () => {
+      const url = urlInput.value;
+      if (!url) return;
+
+      qrCode.style.display = 'block';
+
+      await QRCode.toCanvas(qrCanvas, url, { width: 200 });
+
+      if (logoInput.files.length > 0) {
+        const logoSrc = URL.createObjectURL(logoInput.files[0]);
+        await drawLogo(qrCanvas, logoSrc);
+      }
+
+      const dataURL = qrCanvas.toDataURL('image/png');
+      downloadBtn.href = dataURL;
+      downloadBtn.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
